@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFood-Giỏ hàng</title>
+    <link rel="stylesheet" href="gio_hang_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <div class="logo">TMFood</div>
+      <nav>
+        <ul>
+          <li>
+            <a href="trang_chu.html"><i class="fas fa-home"></i> Trang chủ</a>
+          </li>
+          <li>
+            <a href="final_menu.html"><i class="fas fa-th"></i> Menu</a>
+          </li>
+          <li>
+            <a href="#" class="active cart_tab"
+              ><i class="fas fa-shopping-cart"></i> Giỏ hàng
+              <!-- <span id="cart-count">(0)</span> -->
+            </a>
+          </li>
+          <li>
+            <a href="don_hang.html" class=""
+              ><i class="fas fa-receipt"></i> Đơn hàng của tôi</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div class="container">
+      <aside class="sidebar"></aside>
+      <main class="content">
+        <div class="table-select">
+          <!-- <span>Vui lòng chọn bàn</span>
+          <button class="select-table-btn" onclick="handleClickSelectTable()">
+            Chọn bàn
+          </button> -->
+        </div>
+
+        <!-- Danh sách món -->
+        <div class="food-list"></div>
+      </main>
+    </div>
+
+    <!-- Thanh thanh toán -->
+    <footer class="checkout">
+      <span class="total">Tổng phải thanh toán: 0</span>
+      <button class="order-btn" onclick="handleClickOrderBtn()">Đặt món</button>
+    </footer>
+
+    <div class="noti-order__success">
+      <div class="overlay" id="overlay"></div>
+      <div class="success-box">
+        <span class="close-btn" onclick="handleClickCloseAllModal()">×</span>
+        <h2>Bạn đã đặt món<br />thành công</h2>
+        <hr />
+
+        <button class="return-btn" onClick="handleClickGoToOrder()">
+          <strong>Xem đơn hàng</strong>
+        </button>
+      </div>
+    </div>
+    <div class="noti-order__failed">
+      <div class="overlay" id="overlay"></div>
+      <div class="success-box">
+        <span class="close-btn" onclick="handleClickCloseAllModal()">×</span>
+        <h2>Bạn chưa có món,<br />chọn món bạn thích nào!</h2>
+        <hr />
+        <button class="return-btn" onClick="handleClickGoToMenu()">
+          <strong>Đi tới Menu</strong>
+        </button>
+      </div>
+    </div>
+
+    <div class="noti-select-table" style="display: none">
+      <div class="overlay" id="overlay"></div>
+      <div class="success-box">
+        <span class="close-btn" onclick="handleClickCloseAllModal()">×</span>
+        <h2>Vui lòng chọn bàn!</h2>
+        <hr />
+        <button class="select-table-btn" onClick="handleClickSelectTable()">
+          <strong>Chọn bàn</strong>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-list-modal">
+      <div class="overlay" id="overlay"></div>
+      <div class="table-list-modal-content">
+        <span class="close-btn" onclick="handleClickCloseAllModal()">×</span>
+        <div class="">
+          <div class="table-container"></div>
+          <div
+            class="door"
+            style="text-align: center; width: fit-content; margin: 0 auto"
+          >
+            CỬA RA VÀO
+          </div>
+
+          <div class="legend">
+            <button class="legend-item empty">TRỐNG</button>
+            <button class="legend-item occupied">ĐANG CHỜ MÓN</button>
+            <button class="legend-item waiting">ĐANG ĂN</button>
+            <button class="legend-item selected">ĐANG ĐẶT MÓN</button>
+          </div>
+
+          <div class="confirm-container">
+            <button class="refresh-btn" onclick="fetchTables()">
+              Làm mới
+              <i class="fas fa-sync"></i>
+            </button>
+            <button class="confirm-btn" onclick="updateTableStatus()">
+              Xác nhận
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="customer-info-modal" style="display: none">
+      <div class="overlay" id="overlay"></div>
+      <div class="success-box">
+        <span class="close-btn" onclick="handleClickCloseAllModal()">×</span>
+        <h2>Vui lòng nhập thông tin khách hàng</h2>
+        <hr />
+        <form
+          style="display: flex; flex-direction: column; gap: 20px"
+          onsubmit="handleSubmitCustomInfo(event)"
+        >
+          <input
+            style="padding: 10px"
+            type="text"
+            id="customerName"
+            placeholder="Nhập tên"
+            required
+          />
+          <input
+            style="padding: 10px"
+            type="tel"
+            id="customerPhone"
+            placeholder="Nhập số điện thoại"
+            required
+          />
+          <button class="order-btn" type="submit">Xác nhận</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const notiOrderSuccess = document.querySelector(".noti-order__success");
+      const notiOrderFailed = document.querySelector(".noti-order__failed");
+      const notiSelectTable = document.querySelector(".noti-select-table");
+      const tableListModal = document.querySelector(".table-list-modal");
+      const tableSelectBtn = document.querySelector(".table-select");
+      const customerInfoModal = document.querySelector(".customer-info-modal");
+
+      //Khở tạo biến lưu trữ kết quả danh sách table sau khi fetchTables
+      let fetchTable = [];
+      let selectingTable = null;
+
+      //Lấy dữ liệu từ sessionStorage
+      const basketItems =
+        JSON.parse(sessionStorage.getItem("basketItems")) || [];
+      const selectedTable =
+        JSON.parse(sessionStorage.getItem("selectedTable")) || null;
+      const customerName = sessionStorage.getItem("customerName") || null;
+      const customerPhone = sessionStorage.getItem("customerPhone") || null;
+
+      function handleSubmitCustomInfo(event) {
+        event.preventDefault();
+        const name = document.getElementById("customerName").value;
+        const phone = document.getElementById("customerPhone").value;
+        // Save to sessionStorage
+        sessionStorage.setItem("customerName", name);
+        sessionStorage.setItem("customerPhone", phone);
+
+        handleClickCloseAllModal();
+      }
+
+      function handleSelectTable(tableElement) {
+        const tableId = tableElement.getAttribute("data-id");
+        selectingTable = tableId;
+        const tableList = document.querySelectorAll(".table");
+        tableList.forEach((table) => {
+          const currentTableId = table.getAttribute("data-id");
+          let currentTableStatus = fetchTable.find(
+            (item) => item.id == currentTableId
+          ).status;
+
+          if (currentTableId === tableId) {
+            table.classList.remove(currentTableStatus);
+            table.textContent = `Chọn bàn ${currentTableId}`;
+            table.classList.add("selecting");
+          } else {
+            table.classList.remove("selecting");
+            table.textContent = `Bàn ${currentTableId}`;
+            table.classList.add(currentTableStatus);
+          }
+        });
+      }
+
+      function renderTableList(data) {
+        const tableContainer = document.querySelector(".table-container");
+        tableContainer.innerHTML = "";
+        data.forEach((table) => {
+          const tableElement = document.createElement("table");
+          tableElement.classList.add("table");
+          tableElement.setAttribute("data-id", table.id);
+          tableElement.addEventListener("click", () => {
+            handleSelectTable(tableElement);
+          });
+          switch (table.status) {
+            case "empty":
+              tableElement.classList.add("empty");
+              break;
+            case "occupied":
+              tableElement.classList.add("occupied");
+              break;
+            case "waiting":
+              tableElement.classList.add("waiting");
+              break;
+            case "selected":
+              tableElement.classList.add("selected");
+              break;
+          }
+          tableElement.textContent = table.name;
+          tableContainer.appendChild(tableElement);
+        });
+      }
+
+      async function fetchTables() {
+        try {
+          const response = await fetch("http://localhost:8080/api/tables");
+          const data = await response.json();
+          fetchTable = data;
+          renderTableList(fetchTable);
+        } catch (err) {
+          console.log("Error fetching table", err);
+        }
+      }
+
+      function handleQuantityChange(id, action) {
+        const itemIndex = basketItems.findIndex((item) => item.id == id);
+        if (itemIndex !== -1) {
+          if (action === "increase") {
+            basketItems[itemIndex].quantity += 1;
+          } else if (action === "decrease") {
+            basketItems[itemIndex].quantity -= 1;
+            // Nếu số lượng về 0 thì xác nhận trước khi xóa
+            if (basketItems[itemIndex].quantity === 0) {
+              const confirmDelete = confirm(
+                "Bạn có chắc chắn muốn xóa sản phẩm khỏi giỏ hàng?"
+              );
+              if (!confirmDelete) {
+                // Nếu người dùng không xác nhận, khôi phục số lượng về 1
+                basketItems[itemIndex].quantity = 1;
+                sessionStorage.setItem(
+                  "basketItems",
+                  JSON.stringify(basketItems)
+                );
+                return;
+              }
+
+              basketItems.splice(itemIndex, 1);
+              // Cập nhật sessionStorage
+              sessionStorage.setItem(
+                "basketItems",
+                JSON.stringify(basketItems)
+              );
+              // Cập nhật số lượng hiển thị trên tab giỏ hàng
+              const cartCount = document.querySelector("#cart-count");
+              if (cartCount) {
+                cartCount.textContent = `(${basketItems.length})`;
+              }
+              // Cập nhật tổng tiền
+              const total = basketItems.reduce(
+                (sum, item) => sum + item.price * item.quantity,
+                0
+              );
+              document.querySelector(
+                ".total"
+              ).textContent = `Tổng phải thanh toán: ${total.toLocaleString()}Đ`;
+              // Tải lại trang để cập nhật giao diện
+              location.reload();
+              return;
+            }
+          }
+
+          // Cập nhật sessionStorage
+          sessionStorage.setItem("basketItems", JSON.stringify(basketItems));
+
+          // Cập nhật giao diện
+          const quantityElement = document
+            .querySelector(
+              `[onclick="handleQuantityChange(${id}, 'decrease')"]`
+            )
+            .parentElement.querySelector(".quantity-number");
+          const priceElement = document
+            .querySelector(
+              `[onclick="handleQuantityChange(${id}, 'decrease')"]`
+            )
+            .closest(".food-item")
+            .querySelector(".food-price strong");
+
+          quantityElement.textContent = basketItems[itemIndex].quantity;
+          priceElement.textContent = `${(
+            basketItems[itemIndex].price * basketItems[itemIndex].quantity
+          ).toLocaleString()}Đ`;
+
+          // Cập nhật tổng tiền
+          const total = basketItems.reduce(
+            (sum, item) => sum + item.price * item.quantity,
+            0
+          );
+          document.querySelector(
+            ".total"
+          ).textContent = `Tổng phải thanh toán: ${total.toLocaleString()}Đ`;
+        }
+      }
+
+      function handleAdjustQuantity(id, quantity) {
+        const basketItems =
+          JSON.parse(sessionStorage.getItem("basketItems")) || [];
+        const itemIndex = basketItems.findIndex((item) => item.id === id);
+        if (itemIndex !== -1) {
+          basketItems[itemIndex].quantity = quantity;
+        }
+      }
+
+      async function createTableOrder(
+        basketItems,
+        selectedTable,
+        customerName,
+        customerPhone
+      ) {
+        let items = basketItems.map((item) => ({
+          foodId: item.id,
+          quantity: item.quantity,
+        }));
+        try {
+          let response = await fetch("http://localhost:8080/api/orders", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              customer: customerName,
+              customerPhone: customerPhone,
+              tableId: selectedTable,
+              items: items,
+            }),
+          });
+          response = await response.json();
+          if (!response.success) {
+            alert(data.message);
+            return;
+          }
+
+          //Xóa dữ liệu trong sessionStorage
+          sessionStorage.removeItem("basketItems");
+          sessionStorage.removeItem("selectedTable");
+
+          //Lưu lại thông tin đơn hàng vào sessionStorage
+          sessionStorage.setItem("order", JSON.stringify(response.data));
+          notiOrderSuccess.style.display = "block";
+        } catch (err) {
+          console.log("Error creating table order", err);
+        }
+      }
+
+      function handleClickOrderBtn() {
+        const selectedTable =
+          JSON.parse(sessionStorage.getItem("selectedTable")) || null;
+        const customerName = sessionStorage.getItem("customerName") || null;
+        const customerPhone = sessionStorage.getItem("customerPhone") || null;
+        const basketItems =
+          JSON.parse(sessionStorage.getItem("basketItems")) || [];
+        if (basketItems.length === 0) {
+          notiOrderFailed.style.display = "block";
+          return;
+        }
+        if (!selectedTable) {
+          notiSelectTable.style.display = "block";
+          return;
+        }
+        //Kiểm tra  thông tin khách hàng trong sessonStorage
+        if (!customerName || !customerPhone) {
+          customerInfoModal.style.display = "block";
+        }
+        createTableOrder(
+          basketItems,
+          selectedTable,
+          customerName,
+          customerPhone
+        );
+      }
+
+      function handleClickCloseAllModal() {
+        notiOrderSuccess.style.display = "none";
+        notiOrderFailed.style.display = "none";
+        notiSelectTable.style.display = "none";
+        tableListModal.style.display = "none";
+        customerInfoModal.style.display = "none";
+      }
+
+      async function updateTableStatus() {
+        if (!selectingTable) {
+          alert("Vui lòng chọn bàn!");
+          return;
+        }
+        try {
+          let response = await fetch(
+            `http://localhost:8080/api/tables/${selectingTable}/select`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ status: "selected" }),
+            }
+          );
+          response = await response.json();
+          if (!response.success) {
+            alert(response.message);
+            sessionStorage.removeItem("selectedTable");
+            renderTableList(response.data);
+            const html = `
+                <span>Vui lòng chọn bàn</span>
+            <button class="select-table-btn" onclick="handleClickSelectTable()">
+                Chọn bàn
+            </button>
+                `;
+            tableSelectBtn.innerHTML = html;
+            return;
+          }
+          const html = `
+                <span>Số bàn của bạn: ${selectingTable}</span>
+                `;
+          tableSelectBtn.innerHTML = html;
+          alert("Chọn bàn thành công!");
+          handleClickCloseAllModal();
+          sessionStorage.setItem("selectedTable", selectingTable);
+        } catch (error) {
+          console.error("Error updating table status:", error);
+          throw error;
+        }
+      }
+      function handleClickGoToMenu() {
+        const notiOrderFailed = document.querySelector(".noti-order__failed");
+        notiOrderFailed.style.display = "none";
+        window.location.href = "final_menu.html";
+      }
+      function handleClickGoToOrder() {
+        const notiOrderSuccess = document.querySelector(".noti-order__success");
+        notiOrderSuccess.style.display = "none";
+        window.location.href = "don_hang.html";
+      }
+
+      function handleClickSelectTable() {
+        fetchTables();
+        const notiSelectTable = document.querySelector(".noti-select-table");
+        notiSelectTable.style.display = "none";
+        const tableListModal = document.querySelector(".table-list-modal");
+        tableListModal.style.display = "block";
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        //Lấy dữ liệu từ sessionStorage
+        const basketItems =
+          JSON.parse(sessionStorage.getItem("basketItems")) || [];
+        const selectedTable =
+          JSON.parse(sessionStorage.getItem("selectedTable")) || null;
+        const customerName = sessionStorage.getItem("customerName") || null;
+        const customerPhone = sessionStorage.getItem("customerPhone") || null;
+        //Hiển thị số lượng sản phẩm trong giỏ hàng
+        const foodList = document.querySelector(".food-list");
+        let cart_count = document.querySelector("#cart-count");
+        if (!cart_count) {
+          cart_count = document.createElement("span");
+          cart_count.id = "cart-count";
+          document.querySelector(".cart_tab").appendChild(cart_count);
+        }
+        cart_count.textContent = `(${basketItems.length})`;
+
+        //Hiển thị danh sách món
+        foodList.innerHTML = "";
+        // Add each order item to the food list
+        basketItems.forEach((item) => {
+          const foodItem = document.createElement("div");
+          foodItem.className = "food-item";
+          foodItem.innerHTML = `
+                          <img src="${item.image}" alt="${item.name}">
+                          <div class="food-info">
+                              <h3>${item.name}</h3>
+                              <p>${item.price.toLocaleString()}Đ</p>
+                          </div>
+                          <div class="food-quantity">
+                              <span class="quantity-label">Số lượng</span>
+                              <div class="quantity-controls" >
+                                  <button class="quantity-btn minus" onclick="handleQuantityChange(${
+                                    item.id
+                                  }, 'decrease')">
+                                      <i class="fas fa-minus"></i>
+                                  </button>
+                                  <span class="quantity-number">${
+                                    item.quantity
+                                  }</span>
+                                  <button  class="quantity-btn plus" onclick="handleQuantityChange(${
+                                    item.id
+                                  }, 'increase')">
+                                      <i class="fas fa-plus"></i>
+                                  </button>
+                              </div>
+                          </div>
+                          <div class="food-price">
+                              <span>Thành tiền</span> <strong>${(
+                                item.price * item.quantity
+                              ).toLocaleString()}Đ</strong>
+                          </div>
+                      `;
+          foodList.appendChild(foodItem);
+        });
+
+        // Update total price
+        const total = basketItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+
+        //Nếu kiểm tra có selectedTable trong sessionStorage thì hiển thị số bàn nếu không thì hiển thị nút chọn bàn
+        if (selectedTable) {
+          tableSelectBtn.innerHTML = `<span> Số bàn của bạn: ${JSON.parse(
+            sessionStorage.getItem("selectedTable")
+          )}</span>`;
+        } else {
+          const html = `
+                <span>Vui lòng chọn bàn</span>
+            <button class="select-table-btn" onclick="handleClickSelectTable()">
+                Chọn bàn
+            </button>
+                `;
+          tableSelectBtn.innerHTML = html;
+        }
+
+        document.querySelector(
+          ".total"
+        ).textContent = `Tổng phải thanh toán: ${total.toLocaleString()}Đ`;
+      });
+    </script>
+  </body>
+</html>

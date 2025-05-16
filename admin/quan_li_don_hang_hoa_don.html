@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin-Quản lý bàn (hóa đơn)</title>
+    <link rel="stylesheet" href="quan_li_don_hang_hoa_don_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <a href="/admin/quan_li_menu.html" class="btn customer">Quản lí menu</a>
+        <a href="/admin/quan_li_ban.html" class="btn staff">Quản lí bàn</a>
+        <a href="#" class="active">Quản lí đơn hàng</a>
+      </nav>
+      <div class="user-info" style="margin-left: 20px">
+        <i
+          class="fas fa-user-circle"
+          style="font-size: 20px; margin-right: 5px"
+        ></i>
+        <span id="userName"></span>
+        <button class="logout-btn" onclick="logout()">
+          <i
+            class="fas fa-sign-out-alt"
+            style="font-size: 20px; margin-left: 10px"
+          ></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="container">
+      <a href="/admin/quan_li_don_hang.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Danh sách đơn hàng
+      </a>
+      <main class="content">
+        <div class="order-items">
+          <section class="invoice">
+            <h1>TMFood</h1>
+            <p class="add">
+              CN1: 18A/106 Nguyễn Thị Minh Khai, P. Đakao, Hà Nội / Điện Thoại:
+              028 7300 2027 - 0909 120 127
+            </p>
+            <hr />
+            <h2 style="margin-top: 15px">HÓA ĐƠN</h2>
+            <div class="invoice-content">
+              <!-- <div class="invoice-info">
+                <div class="order-info">
+                  <div class="customer-info">
+                    <div class="table-info">
+                      <span>Bàn số: </span>
+                      <span id="table-number"></span>
+                    </div>
+                    <div>
+                      <span>Tên khách hàng: </span>
+                      <span id="customer-name"></span>
+                    </div>
+                    <div>
+                      <span>Số điện thoại: </span>
+                      <span id="customer-phone"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="infor">
+                  <h6>Số hóa đơn: 1234</h6>
+                  <h6>Ngày 8 tháng 3 năm 2025</h6>
+                </div>
+              </div>
+              <table style="border: 1px solid red">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td><b>MÌ KIM CHI GÀ</b></td>
+                    <td>65.000</td>
+                    <td>1</td>
+                    <td>65.000</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td><b>MÌ KIM CHI BÒ</b></td>
+                    <td>65.000</td>
+                    <td>2</td>
+                    <td>130.000</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4">Tổng thanh toán</td>
+                    <td>195.000</td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">Trạng thái</td>
+                    <td style="color: red">Chưa thanh toán</td>
+                  </tr>
+                </tfoot>
+              </table> -->
+            </div>
+            <p class="thank">Cảm ơn quý khách!</p>
+          </section>
+        </div>
+      </main>
+    </div>
+    <footer>
+      <button>Xuất hóa đơn</button>
+    </footer>
+
+    <script>
+      const backendURL = "http://localhost:8080/api";
+      const orderId = new URLSearchParams(window.location.search).get(
+        "orderId"
+      );
+      let order = null;
+
+      const getOrder = async () => {
+        try {
+          let response = await fetch(`${backendURL}/orders/${orderId}`);
+          response = await response.json();
+          if (response.success) {
+            order = response.data;
+          }
+        } catch (error) {
+          console.log("Error", error);
+        }
+      };
+      function authenticateUser() {
+        const name = sessionStorage.getItem("name");
+        const username = sessionStorage.getItem("username");
+        if (!name || !username) {
+          alert("Vui lòng đăng nhập để truy cập vào trang quản lí menu");
+          window.location.href = "/admin/trang_login_nhan_vien.html";
+        } else {
+          document.getElementById("userName").textContent = name;
+        }
+      }
+      function logout() {
+        sessionStorage.clear();
+        window.location.href = "/admin/trang_login_nhan_vien.html";
+      }
+      document.addEventListener("DOMContentLoaded", async function () {
+        authenticateUser();
+        await getOrder();
+        const invoiceContent = document.querySelector(".invoice-content");
+
+        const total = (order.Foodorders || []).reduce(
+          (sum, item) => sum + parseInt(item.totalPrice),
+          0
+        );
+        let html = "";
+        html += `
+        <div class="invoice-info">
+                <div class="order-info">
+                  <div class="customer-info">
+                    <div class="table-info" >
+                      <span>Bàn số: </span>
+                      <span id="table-number" style=" font-weight: bold; text-transform: uppercase">${
+                        order.Table.name || "_______"
+                      }
+                        <!-- (
+                            ${(() => {
+                              if (order.Table.status === "waiting") {
+                                return "Đang chờ món";
+                              } else if (order.Table.status === "selected") {
+                                return "Đang đặt món";
+                              } else if (order.Table.status === "occupied") {
+                                return "Đang sử dụng";
+                              } else {
+                                return "Trống";
+                              }
+                            })()}
+                        ) -->
+                      </span>
+                    </div>
+                    <div>
+                      <span>Tên khách hàng: </span>
+                      <span id="customer-name" style="font-weight: bold; text-transform: uppercase"> ${
+                        order.customerName || "_______"
+                      }</span>
+                    </div>
+                    <div>
+                      <span>Số điện thoại: </span>
+                      <span id="customer-phone" style="font-weight: bold; text-transform: uppercase">
+                         ${order.customerPhone || "_______"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="infor">
+                  <h6>Số hóa đơn: ${order.id}</h6>
+                  <h6>
+                    Ngày ${new Date(order.createdAt).toLocaleDateString()}
+                  </h6>
+                </div>
+              </div>
+              <table style="border: 1px solid red">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${order.Foodorders.map(
+                    (item, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${item.Food.name}</b></td>
+                    <td>${item.Food.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.totalPrice}</td>
+                  </tr>
+                  `
+                  ).join("")}
+                  
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4">Tổng thanh toán</td>
+                    <td>${total.toLocaleString()}đ</td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">Trạng thái</td>
+                    <td style="color: red">${
+                      order.status == "pending"
+                        ? "Chưa thanh toán"
+                        : "Đã thanh toán"
+                    }</td>
+                  </tr>
+                </tfoot>
+              </table>`;
+        invoiceContent.innerHTML = html;
+        // Tính và hiển thị tổng tiền
+
+        document.getElementById(
+          "total-amount"
+        ).textContent = `${total.toLocaleString()}đ`;
+
+        // Hiển thị trạng thái đơn hàng
+        document.getElementById("order-status").textContent =
+          "Đang chờ xác nhận";
+      });
+    </script>
+  </body>
+</html>

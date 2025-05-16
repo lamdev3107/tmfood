@@ -1,0 +1,221 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+a {
+  text-decoration: none;
+  color: #333;
+}
+body {
+  background-color: #ffe5e5;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffb3b3;
+  padding: 15px 40px;
+}
+
+.logo {
+  font-size: 40px;
+  font-weight: bold;
+  font-family: Kaisei HarunoUmi;
+}
+.logo {
+  text-shadow: 2px 2px 5px rgb(199, 62, 62);
+}
+header {
+  background-color: #f4a6a6;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.3);
+}
+nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+nav a {
+  font-size: 1.1rem;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+nav a:not(.active):hover {
+  background-color: #f5cece;
+  border-radius: 10px;
+}
+
+nav .active {
+  background-color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+.logout-btn {
+  background-color: #f5cece;
+  border-radius: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+  margin-left: 10px;
+  border: none;
+}
+.logout-btn:hover {
+  background-color: rgb(247, 83, 83);
+}
+.table-status {
+  margin-top: 10px;
+  font-size: 20px;
+}
+.table-status-text {
+  font-size: 20px;
+  font-weight: bold;
+}
+.customer-info {
+  margin-top: 10px;
+}
+.customer-name,
+.customer-phone {
+  font-size: 20px;
+}
+.customer-name span,
+.customer-phone span {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+body {
+  background-color: #ffe5e5;
+  text-align: center;
+}
+.back-button {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-left: 100px;
+  margin-top: 20px;
+}
+.back-button:hover {
+  color: #bc2929;
+}
+.back-button i {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+/* Nút bàn */
+.table-button {
+  background-color: #7dc47d;
+  color: black;
+  font-weight: bold;
+  padding: 10px 30px;
+  border: none;
+  margin: 10px auto;
+}
+h2 {
+  margin-top: 20px;
+  margin-bottom: 50px;
+  color: black;
+  font-size: 20px;
+}
+
+/* Danh sách món */
+.order-list {
+  max-width: 900px;
+  margin: 20px auto;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  background-color: #d3d3d3;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.order-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.order-info {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.order-name {
+  font-weight: bold;
+}
+
+.order-quantity {
+  margin: 0 20px;
+}
+
+.order-total .price {
+  font-weight: bold;
+  color: #bc2929;
+}
+
+/* Footer */
+footer {
+  background-color: #ffb3b3;
+  text-align: right;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.update-btn {
+  background-color: green;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.update-btn:hover {
+  opacity: 0.8;
+}
+.cancel-btn {
+  background-color: rgb(244, 213, 12);
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+}
+.cancel-btn:hover {
+  opacity: 0.8;
+}
+.order-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.order-total p:first-child {
+  margin-right: 10px;
+}
+.bill {
+  font-size: large;
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}

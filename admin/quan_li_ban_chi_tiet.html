@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin-Quản lí bàn (Chi tiết)</title>
+    <link rel="stylesheet" href="quan_li_ban_chi_tiet_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <button>
+          <a href="/admin/quan_li_menu.html" class="btn customer"
+            >Quản lí menu</a
+          >
+        </button>
+        <button class="active">Quản lí bàn</button>
+        <button>
+          <a href="/admin/quan_li_don_hang.html" class="btn staff"
+            >Quản lí đơn hàng</a
+          >
+        </button>
+      </nav>
+      <div class="user-info" style="margin-left: 20px">
+          <i
+            class="fas fa-user-circle"
+            style="font-size: 20px; margin-right: 5px"
+          ></i>
+          <span id="userName"></span>
+          <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt" style="font-size: 20px; margin-left: 10px"></i>
+          </button>
+        </div>
+    </header>
+
+    <main>
+      <a href="/admin/quan_li_ban.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách bàn
+      </a>
+      <button class="table-name table-button" style="text-transform: uppercase">
+        ______
+      </button>
+
+      <div class="table-status">
+        Trạng thái:
+        <span
+          class="table-status-text"
+          style="color: rgb(199, 62, 62); text-transform: uppercase"
+          >____</span
+        >
+      </div>
+        <div class="customer-info customer-name">
+          Khách hàng:
+          <span
+          class=""
+          style="color: rgb(199, 62, 62); text-transform: uppercase"
+          >____</span
+        >
+        <div class="customer-info  customer-phone">
+        Số điện thoại:
+        <span
+          class=""
+          style="color: rgb(199, 62, 62); text-transform: uppercase"
+          >____</span
+        >
+      </div>
+      
+
+      <div class="order-list">
+        <!-- Dùng javascript để render danh sách món -->
+      </div>
+    </main>
+
+    <footer>
+      <button class="update-btn" style="text-transform: uppercase">
+        Hoàn thành lên món
+      </button>
+    </footer>
+
+    <script>
+      const tableId = new URLSearchParams(window.location.search).get("id");
+    
+      const backendURL = "http://localhost:8080/api";
+      let tableOrder = null;
+      let table = null;
+
+      async function updateTableStatus(tableId, status) {
+        try {
+          let response = await fetch(`${backendURL}/tables/${tableId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status }),
+          });
+          response = await response.json();
+          if (response.success) {
+            alert("Cập nhật trạng thái bàn thành công");
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error("Error updating table status:", error);
+        }
+      }
+      async function updateOrderStatus(orderId) {
+        try {
+          let response = await fetch(`${backendURL}/orders/${orderId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "completed" }),
+          });
+          response = await response.json();
+          if (response.success) {
+            alert("Cập nhật trạng thái đơn hàng thành công");
+          }
+        } catch (error) {
+          console.error("Error updating order status:", error);
+        }
+      }
+      async function fetchTableOrder() {
+        try {
+          let response = await fetch(`${backendURL}/orders/table/${tableId}`);
+          response = await response.json();
+          if (response.success) {
+            //Gán dữ liệu vào biến tableOrder
+            tableOrder = response.data.order;
+            table = response.data.table;
+
+            //Cập nhật tên bàn
+            const tableStatus = document.querySelector(".table-name");
+            const updateBtn = document.querySelector(".update-btn");
+
+            tableStatus.textContent = table.name;
+            //Cập nhật trạng thái bàn
+            const tableStatusText =
+              document.querySelector(".table-status-text");
+            switch (table.status) {
+              case "empty":
+                tableStatusText.textContent = "TRỐNG";
+                break;
+              case "waiting":
+                tableStatusText.textContent = "ĐANG CHỜ MÓN";
+                updateBtn.textContent = "Hoàn thành lên món";
+                break;
+              case "occupied":
+                tableStatusText.textContent = "ĐANG ĂN";
+                updateBtn.textContent = "Thanh toán đơn hàng";
+                break;
+              case "selected":
+                tableStatusText.textContent = "ĐANG ĐẶT MÓN";
+                break;
+            }
+            //Cập nhật danh sách món
+            const orderList = document.querySelector(".order-list");
+            orderList.innerHTML = "";
+            let orderItemHTML = ``;
+
+            //Nếu trạng thái bàn ăn là "ĐANG CHỜ MÓN" hoặc "ĐANG ĂN" thì hiển thị danh sách món
+            //Nếu trạng thái bàn là "TRỐNG" hoặc "ĐANG ĐẶT MÓN" thì không hiển thị danh sách món (chưa có món ăn)
+            if (table.status == "waiting" || table.status == "occupied") {
+              //Cập nhật tên khách hàng và số điện thoại
+              const customerName = document.querySelector(".customer-name span");
+              const customerPhone = document.querySelector(".customer-phone span");
+              customerName.textContent = tableOrder.customerName;
+              customerPhone.textContent = tableOrder.customerPhone;
+
+              tableOrder.Foodorders.forEach((item) => {
+                let food = item.Food;
+                orderItemHTML += `
+                <div class="order-item">
+                    <img src=${food.image} alt=${food.name} />
+                    <div class="order-info">
+                        <p class="order-name">${food.name}</p>
+                        <p class="order-price">${food.price}</p>
+                    </div>
+                    <div class="order-quantity">
+                        <p>Số lượng: <strong>${item.quantity}</strong></p>
+                    </div>
+                    <div class="order-total">
+                        <p>Thành tiền</p>
+                        <p class="price">${parseInt(
+                          item.totalPrice
+                        ).toLocaleString("vi-VN")}đ</p>
+                    </div>
+                </div>
+              `;
+              });
+              orderList.innerHTML = orderItemHTML;
+              // Tính tổng tiền
+              let totalAmount = 0;
+              tableOrder.Foodorders.forEach((item) => {
+                totalAmount += parseFloat(item.totalPrice);
+              });
+
+              // Hiển thị tổng tiền
+              const totalElement = document.createElement("div");
+              totalElement.className = "order-total";
+              totalElement.innerHTML = `
+              <div class="bill">
+                <p>Tổng tiền:</p>
+                <p class="price">${totalAmount.toLocaleString("vi-VN")}đ</p>
+              </div>
+            `;
+              orderList.appendChild(totalElement);
+            }
+
+            //Hiển thị footer
+            const footer = document.querySelector("footer");
+            //Nếu trạng thái bàn là "TRÓNG" hoặc "CHỜ MÓN ĂN" thì không hiển thị footer
+            if (table.status == "empty" || table.status == "selected") {
+              footer.style.display = "none";
+            } else {
+              footer.style.display = "block";
+            }
+
+            //Thêm sự kiện khi click update-btn
+            updateBtn.addEventListener("click", () => {
+              //Nếu trạng thái đang chờ món ăn thì cập nhật trạng thái bàn thành "ĐANG ĂN"
+              if (table.status == "waiting") {
+                updateTableStatus(tableId, "occupied");
+              } else if (table.status == "occupied") {
+                //Nếu trạng thái "ĐANG ĂN" thì thanh toán đơn hàng
+                if (confirm("Bạn có chắc chắn muốn thanh toán đơn hàng này?")) {
+                  updateOrderStatus(tableOrder.id);
+                  window.location.href = `/admin/quan_li_don_hang_hoa_don.html?orderId=${tableOrder.id}`;
+                }
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching orders:", error);
+          return null;
+        }
+      }
+      // Call the function when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchTableOrder();
+      });
+    </script>
+  </body>
+</html>

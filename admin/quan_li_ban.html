@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin-Quản lí bàn</title>
+    <link rel="stylesheet" href="quan_li_ban_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <a href="/admin/quan_li_menu.html" class="btn customer">Quản lí menu</a>
+        <a href="#" class="active">Quản lí bàn</a>
+        <a href="/admin/quan_li_don_hang.html" class="btn staff"
+          >Quản lí đơn hàng</a
+        >
+      </nav>
+      <div class="user-info" style="margin-left: 20px">
+        <i
+          class="fas fa-user-circle"
+          style="font-size: 20px; margin-right: 5px"
+        ></i>
+        <span id="userName"></span>
+        <button class="logout-btn" onclick="logout()">
+          <i
+            class="fas fa-sign-out-alt"
+            style="font-size: 20px; margin-left: 5px"
+          ></i>
+        </button>
+      </div>
+    </header>
+    <div class="container">
+      <button
+        class="refresh-btn"
+        style="margin-right: 10px"
+        onclick="fetchTables()"
+      >
+        Làm mới
+        <i class="fas fa-redo"></i>
+      </button>
+      <button class="reset-btn" onclick="handleResetTable()">
+        Reset tất cả về "trống"
+        <i class="fas fa-refresh"></i>
+      </button>
+      <div class="table-container"></div>
+      <div
+        class="door"
+        style="text-align: center; width: fit-content; margin: 0 auto"
+      >
+        CỬA RA VÀO
+      </div>
+
+      <div class="legend">
+        <button class="legend-item empty">TRỐNG</button>
+        <button class="legend-item waiting">ĐANG CHỜ MÓN</button>
+        <button class="legend-item occupied">ĐANG ĂN</button>
+        <button class="legend-item selected">ĐANG ĐẶT MÓN</button>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    async function handleResetTable() {
+      if (
+        confirm(`Bạn có chắc muốn reset tất cả các bàn về trạng thái "trống"?`)
+      ) {
+        let response = await fetch("http://localhost:8080/api/tables/reset", {
+          method: "PUT",
+        });
+        response = await response.json();
+        if (response.success) {
+          alert("Đã reset tất cả các bàn về trạng thái 'trống'");
+          fetchTables();
+        } else {
+          alert("Lỗi khi reset bàn");
+        }
+      }
+    }
+    function handleSelectTable(tableId) {
+      window.location.href = `/admin/quan_li_ban_chi_tiet.html?id=${tableId}`;
+    }
+    function renderTableList(data) {
+      const tableContainer = document.querySelector(".table-container");
+      tableContainer.innerHTML = "";
+      data.forEach((table) => {
+        const tableElement = document.createElement("table");
+        tableElement.classList.add("table");
+        tableElement.setAttribute("data-id", table.id);
+        tableElement.addEventListener("click", () => {
+          console.log("check tableId", table.id);
+          handleSelectTable(table.id);
+        });
+        switch (table.status) {
+          case "empty":
+            tableElement.classList.add("empty");
+            break;
+          case "occupied":
+            tableElement.classList.add("occupied");
+            break;
+          case "waiting":
+            tableElement.classList.add("waiting");
+            break;
+          case "selected":
+            tableElement.classList.add("selected");
+            break;
+        }
+        tableElement.textContent = table.name;
+        tableContainer.appendChild(tableElement);
+      });
+    }
+    async function fetchTables() {
+      try {
+        const response = await fetch("http://localhost:8080/api/tables");
+        const data = await response.json();
+        fetchTable = data;
+        renderTableList(fetchTable);
+      } catch (err) {
+        console.log("Error fetching table", err);
+      }
+    }
+
+    function authenticateUser() {
+      const name = sessionStorage.getItem("name");
+      const username = sessionStorage.getItem("username");
+      if (!name || !username) {
+        alert("Vui lòng đăng nhập để truy cập vào trang quản lí menu");
+        window.location.href = "/admin/trang_login_nhan_vien.html";
+      } else {
+        document.getElementById("userName").textContent = name;
+      }
+    }
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "/admin/trang_login_nhan_vien.html";
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      authenticateUser();
+      fetchTables();
+    });
+  </script>
+</html>

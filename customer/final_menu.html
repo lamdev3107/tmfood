@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFood-Menu</title>
+    <link rel="stylesheet" href="menu_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="trang_chu.html"><i class="fas fa-home"></i> Trang chủ</a>
+          </li>
+          <li>
+            <a href="final_menu.html" class="active"
+              ><i class="fas fa-th"></i> Menu</a
+            >
+          </li>
+          <li id="cart_tab">
+            <a href="gio_hang.html"
+              ><i class="fas fa-shopping-cart"></i> Giỏ hàng
+              <span id="cart-count">(0)</span></a
+            >
+          </li>
+          <li>
+            <a href="don_hang.html" class=""
+              ><i class="fas fa-receipt"></i> Đơn hàng của tôi</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <ul class="category-list">
+          <!-- Categories will be dynamically loaded here -->
+        </ul>
+      </aside>
+
+      <main>
+        <div class="search-bar">
+          <input type="text" placeholder="🔍 Tên sản phẩm" />
+        </div>
+        <div class="category-food-section">
+          <button class="btn-category">Tất cả</button>
+          <div class="food-grid">
+            <!-- Food items remain the same -->
+
+            <!-- Other food items with same structure -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const backendURL = "http://localhost:8080/api";
+      const categoryElement = document.querySelector(".category-food-section");
+      const categoryList = document.querySelector(".category-list");
+      const foodGrid = document.querySelector(".food-grid");
+      //Giỏ hàng
+      const basketItems =
+        JSON.parse(sessionStorage.getItem("basketItems")) || [];
+
+      function handleClickCategory() {
+        // Thêm sự kiện click vào danh mục
+        const categoryElements = document.querySelectorAll(".category");
+        categoryElements.forEach((category) => {
+          category.addEventListener("click", async function () {
+            categoryElements.forEach((c) => c.classList.remove("active"));
+            this.classList.add("active");
+
+            const selectedCategory = this.getAttribute("data-category");
+            if (selectedCategory === "all") {
+              await fetchAllCategoryFood();
+              return;
+            } else {
+              // Gọi hàm fetchCategoryItems với ID danh mục được chọn để hiển thị món ăn tương ứng với danh mục
+              await fetchCategoryItems(selectedCategory);
+            }
+          });
+        });
+      }
+
+      //Function fetch food items by category
+      async function fetchCategoryItems(categoryId) {
+        try {
+          let response = await fetch(
+            `http://localhost:8080/api/categories/${categoryId}`
+          );
+          response = await response.json();
+          let category = response.data;
+          let html = "";
+          let foodList = category.Foods;
+          html += renderFoodSection(foodList, category.name);
+          categoryElement.innerHTML = html;
+          const addBtn = document.querySelectorAll(".add-btn");
+          addBtn.forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const foodItem = this.closest(".food-item");
+              const foodId = foodItem.getAttribute("data-id");
+              const foodName = foodItem.querySelector("p").textContent;
+              const foodPrice = parseFloat(
+                foodItem.querySelector(".price").textContent.replace("đ", "")
+              );
+              const foodImage = foodItem.querySelector("img").src;
+              const quantity = 1;
+              const food = {
+                id: foodId,
+                name: foodName,
+                price: foodPrice,
+                image: foodImage,
+                quantity: quantity,
+              };
+              handleAddToCart(food);
+            });
+          });
+        } catch (error) {
+          console.error("Error fetching category items:", error);
+        }
+      }
+
+      function renderFoodSection(foodList, categoryName) {
+        return `
+              <div style="width: 100%">
+                  <button class="btn-category">${categoryName}</button>
+                  <div class="food-grid">
+                      ${(() => {
+                        let array = [];
+                        foodList.forEach((food) => {
+                          array.push(`
+                                  <div class="food-item" data-id="${food.id}">
+                                    <div class="food-item__image" >
+                                      <img src="${food.image}" alt="${
+                            food.name
+                          }">
+                                    </div>
+                                    
+                                      <p>${food.name}</p>
+                                      <span class="price">${food.price} đ</span>
+                                      <div class="btn-group">
+                                        ${(() => {
+                                          const item = basketItems.find(
+                                            (item) => item.id == food.id
+                                          );
+                                          if (item) {
+                                            return `<div class="quantity-controls" >
+                                                <button title="Giảm" class="quantity-btn minus" onclick="handleQuantityChange(${item.id}, 'decrease')">
+                                                    -
+                                                </button>
+                                                <span class="quantity-number">${item.quantity}</span>
+                                                <button title="Tăng" class="quantity-btn plus" onclick="handleQuantityChange(${item.id}, 'increase')">
+                                                    +
+                                                </button>
+                                            </div>`;
+                                          }
+
+                                          return `<button title="Thêm vào giỏ hàng" class="add-btn" >Thêm vào giỏ hàng </button>`;
+                                        })()}
+
+                                      </div>
+                                  </div>
+                              `);
+                        });
+                        return array.join("");
+                      })()}
+
+                  </div>
+              </div>`;
+      }
+
+      //Function fetch all food items
+      async function fetchAllCategoryFood() {
+        try {
+          let response = await fetch(`${backendURL}/categories`);
+          response = await response.json();
+          response = response.data;
+
+          //Thêm danh mục tất cả vào sidebar
+          categoryList.innerHTML = `
+                        <li class="category active" data-category="all">Tất cả</li>
+                        <hr>
+                    `;
+          // HIện thị sản phẩm theo danh mục
+          let html = "";
+          response.forEach((category) => {
+            //Lấy ra danh sách món ăn theo danh mục
+            let foodList = category.Foods;
+            //Render đoạn html chứa danh sách món ăn theo danh mục
+            html += renderFoodSection(foodList, category.name);
+            //Hiển thị danh sách món ăn theo danh mục
+            categoryElement.innerHTML = html;
+
+            //Thêm danh mục vào sidebar
+            categoryList.innerHTML += `
+                            <li class="category" data-category="${category.id}">${category.name}</li>
+                            <hr>
+                        `;
+            const categorySelect = document.getElementById("itemCategory");
+            if (categorySelect) {
+              categorySelect.innerHTML += `
+                                <option value="${category.id}">${category.name}</option>
+                            `;
+            }
+          });
+          //Thêm sự kiện click vào button "Thêm vào giỏ hàng"
+          const addBtn = document.querySelectorAll(".add-btn");
+          addBtn.forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const foodItem = this.closest(".food-item");
+              const foodId = foodItem.getAttribute("data-id");
+              const foodName = foodItem.querySelector("p").textContent;
+              const foodPrice = parseFloat(
+                foodItem.querySelector(".price").textContent.replace("đ", "")
+              );
+              const foodImage = foodItem.querySelector("img").src;
+              const quantity = 1;
+              const food = {
+                id: foodId,
+                name: foodName,
+                price: foodPrice,
+                image: foodImage,
+                quantity: quantity,
+              };
+              handleAddToCart(food);
+            });
+          });
+          //Thêm sự kiện click vào danh mục
+          handleClickCategory();
+        } catch (error) {
+          console.error("Error fetching category items:", error);
+        }
+      }
+
+      function handleQuantityChange(id, action) {
+        const itemIndex = basketItems.findIndex((item) => item.id == id);
+        if (itemIndex !== -1) {
+          if (action === "increase") {
+            basketItems[itemIndex].quantity += 1;
+            // Cập nhật quantity
+            const quantityElement = document
+              .querySelector(
+                `[onclick="handleQuantityChange(${id}, 'decrease')"]`
+              )
+              .parentElement.querySelector(".quantity-number");
+
+            quantityElement.textContent = basketItems[itemIndex].quantity;
+          } else if (action === "decrease") {
+            basketItems[itemIndex].quantity -= 1;
+            // Nếu số lượng về 0 thì yêu cầu người dùng xác nhận trước khi xóa khỏi giỏ hàng
+            if (basketItems[itemIndex].quantity === 0) {
+              const confirmDelete = confirm(
+                "Bạn có chắc chắn muốn xóa sản phẩm khỏi giỏ hàng?"
+              );
+              if (!confirmDelete) {
+                // Nếu người dùng không xác nhận, khôi phục số lượng về 1
+                basketItems[itemIndex].quantity = 1;
+                sessionStorage.setItem(
+                  "basketItems",
+                  JSON.stringify(basketItems)
+                );
+              } else {
+                //Nếu người dùng xác nhận thì Render lại button "Thêm vào giỏ hàng"
+                const foodItem = document.querySelector(`[data-id="${id}"]`);
+                const foodName = foodItem.querySelector("p").textContent;
+                const foodPrice = parseFloat(
+                  foodItem.querySelector(".price").textContent.replace("đ", "")
+                );
+                const foodImage = foodItem.querySelector("img").src;
+                const quantity = 1;
+                const food = {
+                  id: id,
+                  name: foodName,
+                  price: foodPrice,
+                  image: foodImage,
+                  quantity: quantity,
+                };
+                const btnGroup = foodItem.querySelector(".btn-group");
+                btnGroup.innerHTML = `<button title="Thêm vào giỏ hàng" class="add-btn" id="addBtn_${itemIndex}">Thêm vào giỏ hàng</button>`;
+                document
+                  .getElementById(`addBtn_${itemIndex}`)
+                  .addEventListener("click", function () {
+                    handleAddToCart(food);
+                  });
+                basketItems.splice(itemIndex, 1);
+              }
+            } else {
+              // Cập nhật quantity
+              const quantityElement = document
+                .querySelector(
+                  `[onclick="handleQuantityChange(${id}, 'decrease')"]`
+                )
+                .parentElement.querySelector(".quantity-number");
+              quantityElement.textContent = basketItems[itemIndex].quantity;
+            }
+          }
+
+          // Cập nhật số lượng hiển thị trên tab giỏ hàng
+          const cartCount = document.querySelector("#cart-count");
+          if (cartCount) {
+            cartCount.textContent = `(${basketItems.length})`;
+          }
+          // Cập nhật sessionStorage
+          sessionStorage.setItem("basketItems", JSON.stringify(basketItems));
+          //Cập nhật footer giỏ hàng và render footer
+          updateOrderBar(basketItems);
+        }
+      }
+
+      function handleAddToCart(food) {
+        const foodItem = document.querySelector(`[data-id="${food.id}"]`);
+
+        const btnGroup = foodItem.querySelector(".btn-group");
+        btnGroup.innerHTML = `<div class="quantity-controls" >
+                                    <button title="Giảm" class="quantity-btn minus" onclick="handleQuantityChange(${food.id}, 'decrease')">
+                                      -
+                                    </button>
+                                    <span class="quantity-number">1</span>
+                                    <button title="Tăng" class="quantity-btn plus" onclick="handleQuantityChange(${food.id}, 'increase')">
+                                      +
+                                    </button>
+                                </div>`;
+        const foodId = food.id;
+        const foodName = food.name;
+        const foodPrice = parseFloat(food.price);
+        const foodImage = food.image;
+        const quantity = 1;
+        const orderItem = {
+          id: foodId,
+          name: foodName,
+          price: foodPrice,
+          image: foodImage,
+          quantity: quantity,
+        };
+
+        const existingItemIndex = basketItems.findIndex(
+          (item) => item.name === orderItem.name
+        );
+        if (existingItemIndex !== -1) {
+          basketItems[existingItemIndex].quantity += quantity;
+        } else {
+          basketItems.push(orderItem);
+        }
+        //Cập nhật số lượng hiển thị trên tab giỏ hàng
+        const cart_count = document.querySelector("#cart-count");
+        cart_count.textContent = `(${basketItems.length})`;
+        //Cập nhật OrderBar
+        updateOrderBar(basketItems);
+      }
+
+      //Cập nhật footer giỏ hàng và render footer
+      function updateOrderBar(basketItems) {
+        //Cập nhật giỏ hàng
+        let footer = document.querySelector(".bottom-order-bar");
+        sessionStorage.setItem("basketItems", JSON.stringify(basketItems));
+        if (basketItems.length === 0) {
+          if (footer) document.body.removeChild(footer);
+          return;
+        }
+        if (!footer) {
+          footer = document.createElement("div");
+          footer.className = "bottom-order-bar";
+          footer.style.cssText = `
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    background: #fff;
+                    border-top: 2px solid #e91e63;
+                    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                    padding: 12px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-family: Arial, sans-serif;
+                    z-index: 9999;
+                `;
+          document.body.appendChild(footer);
+        }
+
+        const total = basketItems.reduce(
+          (sum, i) => sum + i.price * i.quantity,
+          0
+        );
+        const itemList = basketItems
+          .map((item) => `${item.name} x${item.quantity}`)
+          .join(", ");
+
+        footer.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 500; color: #333;">🧾 ${itemList}</div>
+                    <div style="margin-top: 5px; color: #e91e63; font-weight: bold;">Tổng tiền: ${parseFloat(
+                      total
+                    ).toLocaleString("vi-VN")}₫</div>
+                </div>
+                <a href="gio_hang.html" id="confirm-btn" style="
+                    padding: 10px 20px;
+                    background-color: #e91e63;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                ">Đi tới giỏ hàng</a>
+            `;
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        let cart_count = document.querySelector("#cart-count");
+        if (!cart_count) {
+          cart_count = document.createElement("span");
+          cart_count.id = "cart-count";
+          document.querySelector(".cart_tab").appendChild(cart_count);
+        }
+        cart_count.textContent = `(${basketItems.length})`;
+
+        const categoryList = document.querySelector(".category-list");
+        const categorySelect = document.getElementById("itemCategory");
+        const btnCategory = document.querySelector(".btn-category");
+
+        //Gọi hàm hiển thị footer giỏ hàng
+        updateOrderBar(basketItems);
+
+        // Tải tất cả danh mục và món ăn khi trang được tải
+        await fetchAllCategoryFood();
+
+        // Xử lý sự kiện khi bấm nút "Thêm vào giỏ hàng"
+        const addBtn = document.querySelectorAll(".add-btn");
+        addBtn.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const foodItem = this.closest(".food-item");
+            const foodId = foodItem.getAttribute("data-id");
+            const foodName = foodItem.querySelector("p").textContent;
+            const foodPrice = parseFloat(
+              foodItem.querySelector(".price").textContent.replace("đ", "")
+            );
+            const foodImage = foodItem.querySelector("img").src;
+            const quantity = 1;
+            const food = {
+              id: foodId,
+              name: foodName,
+              price: foodPrice,
+              image: foodImage,
+              quantity: quantity,
+            };
+            handleAddToCart(food);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

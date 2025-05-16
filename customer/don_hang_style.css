@@ -1,0 +1,292 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #ffe5e5;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffb3b3;
+  padding: 15px 40px;
+  border-bottom: 2px solid #ffe5e5;
+}
+
+.logo {
+  font-size: 40px;
+  font-weight: bold;
+  font-family: Kaisei HarunoUmi;
+  text-shadow: 2px 2px 5px rgb(199, 62, 62);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+}
+
+nav ul li {
+  margin: 0 15px;
+}
+
+nav a {
+  text-decoration: none;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+nav a i {
+  font-size: 20px;
+}
+
+nav a.active,
+nav a:hover {
+  background-color: #ffe5e5;
+}
+
+.container {
+  display: flex;
+  height: calc(100vh - 83px);
+  overflow-y: auto;
+}
+
+.content {
+  /* flex-grow: 1; */
+  padding: 20px;
+  width: 60vw;
+  margin: 0 auto;
+  background: #fde5e5;
+}
+
+@media screen and (max-width: 768px) {
+  .content {
+    width: 80vw;
+  }
+}
+.invoice-info {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+.invoice-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+.order-info {
+  background: transparent;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.customer-info div {
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.order-items {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.order-items h2 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #d3d3d3;
+  border-radius: 5px;
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.item-info img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.item-details h3 {
+  color: #333;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.item-details p {
+  color: #666;
+  font-size: 14px;
+}
+
+.item-total {
+  font-weight: bold;
+  color: #d9534f;
+  font-size: 16px;
+}
+
+.order-summary {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: #f4a7a7;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+}
+
+.total,
+.status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 16px;
+}
+
+#total-amount {
+  font-weight: bold;
+  color: #d9534f;
+}
+
+#order-status {
+  color: #d9534f;
+  font-weight: bold;
+}
+/* Hóa đơn */
+.invoice {
+  background: #d9d9d9;
+  padding: 20px;
+  width: 100%;
+  text-align: center;
+}
+h1 {
+  margin-bottom: 5px;
+}
+
+h3 {
+  font-weight: bold;
+  margin-top: 10px;
+}
+.infor {
+  text-align: right;
+  font-style: italic;
+  margin-top: 5px;
+}
+p {
+  text-align: center;
+  font-style: italic;
+  font-size: 10px;
+  margin-top: 80px;
+}
+.add {
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 2px solid white;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background: #f8dada;
+}
+
+tfoot td {
+  font-weight: bold;
+}
+
+.payment {
+  width: 30%;
+}
+
+.payment h3 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 10px;
+  text-align: center;
+}
+
+.payment button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 1rem;
+  border: none;
+  background: #d9d9d9;
+  cursor: pointer;
+}
+
+/* Footer */
+footer {
+  height: 40px;
+  background: #f4a6a6;
+  height: 55px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+footer button {
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 15px 30px;
+  border: none;
+  background: #d9d9d9;
+  color: black;
+  cursor: pointer;
+}

@@ -1,0 +1,103 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #FFE5E5;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FFB3B3;
+    padding: 15px 40px;
+}
+
+.logo {
+    font-size: 40px;
+    font-weight: bold;
+    font-family: Kaisei HarunoUmi;
+}
+.logo {
+    text-shadow: 2px 2px 5px rgb(199, 62, 62);
+}
+nav a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+nav a i {
+    font-size: 20px; 
+}
+
+nav a.active,
+nav a:hover {
+    background-color: #FFE5E5;
+}
+
+.banner img {
+    width: 1000px;
+    max-height: 500px;
+    object-fit: cover;
+    display: block;
+    margin: auto;
+}
+
+.info {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    background-color: #ECECEC;
+}
+
+.follow {
+    flex: 1;
+    padding: 20px;
+}
+
+.follow h3 {
+    margin-bottom: 10px;
+}
+
+.follow p {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.follow a {
+    text-decoration: none;
+    color: black;
+}
+
+.branches {
+    flex: 2;
+    display: flex;
+    gap: 20px;
+}
+
+.branch {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #FFB3B3;
+    font-weight: bold;
+}

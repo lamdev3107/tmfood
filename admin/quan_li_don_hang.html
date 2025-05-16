@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin-Quản lý đơn hàng</title>
+    <link rel="stylesheet" href="quan_li_don_hang_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <a href="/admin/quan_li_menu.html" class="btn customer">Quản lí menu</a>
+        <a href="/admin/quan_li_ban.html" class="btn staff">Quản lí bàn</a>
+        <a href="#" class="active">Quản lí đơn hàng</a>
+      </nav>
+      <div class="user-info" style="margin-left: 20px">
+        <i
+          class="fas fa-user-circle"
+          style="font-size: 20px; margin-right: 5px"
+        ></i>
+        <span id="userName"></span>
+        <button class="logout-btn" onclick="logout()">
+          <i
+            class="fas fa-sign-out-alt"
+            style="font-size: 20px; margin-left: 5px"
+          ></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="container">
+      <main class="content">
+        <h2>Danh sách đơn hàng</h2>
+
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Mã hóa đơn</th>
+              <th>Tên khách hàng</th>
+              <th>Số điện thoại</th>
+              <th>Số bàn</th>
+              <th>Tổng tiền</th>
+              <th>Trạng thái</th>
+              <th>Ngày tạo</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body"></tbody>
+        </table>
+      </main>
+    </div>
+
+    <script>
+      const backendURL = "http://localhost:8080/api";
+      let orders = [];
+      const getAllOrders = async () => {
+        try {
+          let response = await fetch(`${backendURL}/orders`);
+          response = await response.json();
+          if (response.success) {
+            orders = response.data;
+            displayOrders();
+          }
+        } catch (error) {
+          console.log("Error", error);
+        }
+      };
+
+      const displayOrders = () => {
+        const tableBody = document.getElementById("orders-table-body");
+        let html = "";
+
+        orders.forEach((order) => {
+          const total = (order.Foodorders || []).reduce(
+            (sum, item) => sum + parseInt(item.totalPrice),
+            0
+          );
+
+          html += `
+            <tr onclick="window.location.href = '${
+              order.status === "pending"
+                ? `/admin/quan_li_ban_chi_tiet.html?id=${order.Table.id}`
+                : `/admin/quan_li_don_hang_hoa_don.html?orderId=${order.id}`
+            }'" style="cursor: pointer;">
+              <td>${order.id}</td>
+              <td>${order.customerName || "_______"}</td>
+              <td>${order.customerPhone || "_______"}</td>
+              <td>${order.Table ? order.Table.name : "_______"}</td>
+              <td>${total.toLocaleString()}đ</td>
+              <td class="${
+                order.status === "pending" ? "status-pending" : "status-paid"
+              }">
+                ${
+                  order.status === "pending"
+                    ? "Chưa thanh toán"
+                    : "Đã thanh toán"
+                }
+              </td>
+              <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+            </tr>
+          `;
+        });
+
+        tableBody.innerHTML = html;
+      };
+      function authenticateUser() {
+        const name = sessionStorage.getItem("name");
+        const username = sessionStorage.getItem("username");
+        if (!name || !username) {
+          alert("Vui lòng đăng nhập để truy cập vào trang quản lí menu");
+          window.location.href = "/admin/trang_login_nhan_vien.html";
+        } else {
+          document.getElementById("userName").textContent = name;
+        }
+      }
+      function logout() {
+        sessionStorage.clear();
+        window.location.href = "/admin/trang_login_nhan_vien.html";
+      }
+      document.addEventListener("DOMContentLoaded", async function () {
+        authenticateUser();
+        await getAllOrders();
+      });
+    </script>
+  </body>
+</html>

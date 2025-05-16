@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFood - Đăng nhập</title>
+    <link rel="stylesheet" href="trang_login_khach_hang_style.css" />
+  </head>
+  <body>
+    <header></header>
+    <div class="container">
+      <h1>TMFood xin kính chào bạn!</h1>
+      <p>Mời bạn nhập tên và số điện thoại để bắt đầu</p>
+      <form id="loginForm" onsubmit="handleSubmit(event)">
+        <input type="text" id="customerName" placeholder="Nhập tên" required />
+        <input
+          type="tel"
+          id="customerPhone"
+          placeholder="Nhập số điện thoại"
+          required
+        />
+        <button type="submit">BẮT ĐẦU</button>
+      </form>
+      <script>
+        function handleSubmit(event) {
+          event.preventDefault();
+          const name = document.getElementById("customerName").value;
+          const phone = document.getElementById("customerPhone").value;
+
+          // Save to sessionStorage
+          sessionStorage.setItem("customerName", name);
+          sessionStorage.setItem("customerPhone", phone);
+
+          // Redirect to menu page
+          window.location.href = "trang_chu.html";
+        }
+      </script>
+    </div>
+    <script src="login_KH.js"></script>
+  </body>
+</html>

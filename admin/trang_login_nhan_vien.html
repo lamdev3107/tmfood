@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFood - Đăng nhập</title>
+    <link rel="stylesheet" href="trang_login_nhan_vien_style.css" />
+  </head>
+  <body>
+    <header></header>
+    <div class="container">
+      <h1>TMFood xin kính chào bạn!</h1>
+      <p>Mời bạn đăng nhập tài khoản</p>
+      <form id="loginForm">
+        <input
+          type="text"
+          id="username"
+          placeholder="Nhập tên tài khoản"
+          required
+        />
+        <input
+          type="password"
+          id="password"
+          placeholder="Nhập mật khẩu"
+          required
+        />
+        <button type="submit">BẮT ĐẦU</button>
+      </form>
+    </div>
+
+    <script>
+      const backendURL = "http://localhost:8080/api/users/login";
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          try {
+            const response = await fetch(backendURL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                username: username,
+                password: password,
+              }),
+            });
+            const data = await response.json();
+
+            if (data.success) {
+              alert("Đăng nhập thành công");
+              // Redirect to dashboard or home page
+              sessionStorage.setItem("name", data.data.name);
+              sessionStorage.setItem("username", data.data.username);
+              window.location.href = "quan_li_menu.html";
+            } else {
+              alert("Đăng nhập thất bại! " + data.message);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert(error);
+          }
+        });
+    </script>
+  </body>
+</html>

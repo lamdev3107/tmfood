@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TMFood-Đơn hàng của tôi</title>
+    <link rel="stylesheet" href="don_hang_style.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="logo">TMFood</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="trang_chu.html"><i class="fas fa-home"></i> Trang chủ</a>
+          </li>
+          <li>
+            <a href="final_menu.html"><i class="fas fa-th"></i> Menu</a>
+          </li>
+          <li>
+            <a href="gio_hang.html"
+              ><i class="fas fa-shopping-cart"></i> Giỏ hàng</a
+            >
+          </li>
+          <li>
+            <a href="don_hang.html" class="active"
+              ><i class="fas fa-receipt"></i> Đơn hàng của tôi</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <main class="content">
+        <div class="order-items">
+          <section class="invoice">
+            <h1>TMFood</h1>
+            <p class="add">
+              CN1: 18A/106 Nguyễn Thị Minh Khai, P. Đakao, Hà Nội / Điện Thoại:
+              028 7300 2027 - 0909 120 127
+            </p>
+            <hr />
+            <h2 style="margin-top: 15px">HÓA ĐƠN</h2>
+            <div class="invoice-content">
+              <!-- Dùng JS để render hóa đơn  -->
+            </div>
+            <p class="thank">Cảm ơn quý khách!</p>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        const invoiceContent = document.querySelector(".invoice-content");
+        // Lấy thông tin đơn hàng từ sessionStorage
+        const order = JSON.parse(sessionStorage.getItem("order"));
+
+        if (!order) {
+          alert(
+            "Bạn chưa có đơn hàng nào! Vui lòng quay trở về menu để đặt món"
+          );
+          window.location.href = "final_menu.html";
+        } else {
+          const total = (order.Foodorders || []).reduce(
+            (sum, item) => sum + parseInt(item.totalPrice),
+            0
+          );
+          console.log("Check total", total);
+          let html = "";
+          html += `
+        <div class="invoice-info">
+                <div class="order-info">
+                  <div class="customer-info">
+                    <div class="table-info" >
+                      <span>Bàn số: </span>
+                      <span id="table-number" style=" font-weight: bold; text-transform: uppercase">${
+                        order.Table.name || "_______"
+                      }
+                        <!-- (
+                            ${(() => {
+                              if (order.Table.status === "waiting") {
+                                return "Đang chờ món";
+                              } else if (order.Table.status === "selected") {
+                                return "Đang đặt món";
+                              } else if (order.Table.status === "occupied") {
+                                return "Đang sử dụng";
+                              } else {
+                                return "Trống";
+                              }
+                            })()}
+                        ) -->
+                      </span>
+                    </div>
+                    <div>
+                      <span>Tên khách hàng: </span>
+                      <span id="customer-name" style="font-weight: bold; text-transform: uppercase"> ${
+                        order.customerName || "_______"
+                      }</span>
+                    </div>
+                    <div>
+                      <span>Số điện thoại: </span>
+                      <span id="customer-phone" style="font-weight: bold; text-transform: uppercase">
+                         ${order.customerPhone || "_______"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="infor">
+                  <h6>Số hóa đơn: ${order.id}</h6>
+                  <h6>
+                    Ngày ${new Date(order.createdAt).toLocaleDateString()}
+                  </h6>
+                </div>
+              </div>
+              <table style="border: 1px solid red">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${order.Foodorders.map(
+                    (item, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${item.Food.name}</b></td>
+                    <td>${item.Food.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.totalPrice}</td>
+                  </tr>
+                  `
+                  ).join("")}
+                  
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4">Tổng thanh toán</td>
+                    <td>${total.toLocaleString()}đ</td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">Trạng thái</td>
+                    <td style="color: red">${
+                      order.status == "pending"
+                        ? "Chưa thanh toán"
+                        : "Đã thanh toán"
+                    }</td>
+                  </tr>
+                </tfoot>
+              </table>`;
+          invoiceContent.innerHTML = html;
+          // Tính và hiển thị tổng tiền
+
+          document.getElementById("total-amount").textContent = `${parseFloat(
+            total
+          ).toLocaleString("vi-VN")}đ`;
+
+          // Hiển thị trạng thái đơn hàng
+          document.getElementById("order-status").textContent =
+            "Đang chờ xác nhận";
+        }
+      });
+    </script>
+  </body>
+</html>
